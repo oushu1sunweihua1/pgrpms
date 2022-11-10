@@ -6,6 +6,7 @@
 %global prevmajorversion 13
 %global sname postgresql
 %global pgbaseinstdir	/usr/pgsql-%{pgmajorversion}
+%global pgdepdir /usr/pgsql-14
 
 %global beta 0
 %{?beta:%global __os_install_post /usr/lib/rpm/brp-compress}
@@ -17,19 +18,19 @@
 %if 0%{?rhel} || 0%{?suse_version} >= 1315
 %{!?enabletaptests:%global enabletaptests 0}
 %else
-%{!?enabletaptests:%global enabletaptests 1}
+%{!?enabletaptests:%global enabletaptests 0}
 %endif
 
 %{!?icu:%global icu 1}
-%{!?kerberos:%global kerberos 1}
+%{!?kerberos:%global kerberos 0}
 %{!?ldap:%global ldap 1}
 %{!?nls:%global nls 1}
-%{!?pam:%global pam 1}
+%{!?pam:%global pam 0}
 
 # All Fedora releases now use Python3
 # Support Python3 on RHEL 7.7+ natively
 # RHEL 8+ use Python3
-%{!?plpython3:%global plpython3 1}
+%{!?plpython3:%global plpython3 0}
 
 %if 0%{?suse_version}
 %if 0%{?suse_version} >= 1315
@@ -38,32 +39,32 @@
 %endif
 %endif
 
-%{!?pltcl:%global pltcl 1}
-%{!?plperl:%global plperl 1}
+%{!?pltcl:%global pltcl 0}
+%{!?plperl:%global plperl 0}
 %{!?ssl:%global ssl 1}
-%{!?test:%global test 1}
+%{!?test:%global test 0}
 %{!?runselftest:%global runselftest 0}
 %{!?uuid:%global uuid 1}
 %{!?xml:%global xml 1}
 
-%{!?systemd_enabled:%global systemd_enabled 1}
+%{!?systemd_enabled:%global systemd_enabled 0}
 
 %ifarch ppc64 ppc64le s390 s390x armv7hl
 %{!?sdt:%global sdt 0}
 %else
- %{!?sdt:%global sdt 1}
+ %{!?sdt:%global sdt 0}
 %endif
 
-%{!?selinux:%global selinux 1}
+%{!?selinux:%global selinux 0}
 
 %ifarch ppc64 ppc64le s390 s390x armv7hl
  %if 0%{?rhel} && 0%{?rhel} == 7
   %{!?llvm:%global llvm 0}
  %else
-  %{!?llvm:%global llvm 1}
+  %{!?llvm:%global llvm 0}
  %endif
 %else
- %{!?llvm:%global llvm 1}
+ %{!?llvm:%global llvm 0}
 %endif
 
 %if 0%{?fedora} > 30
@@ -114,24 +115,24 @@ Patch6:		%{sname}-%{pgmajorversion}-perl-rpath.patch
 # Temp patch until 14.5 is released:
 Patch10:	%{sname}-%{pgmajorversion}-14.5-Track-LLVM-15-changes.patch
 
-BuildRequires:	perl glibc-devel bison flex >= 2.5.31
-BuildRequires:	gcc-c++
-BuildRequires:	perl(ExtUtils::MakeMaker)
-BuildRequires:	readline-devel zlib-devel >= 1.0.4 pgdg-srpm-macros
+##BuildRequires:	perl glibc-devel bison flex >= 2.5.31
+##BuildRequires:	gcc-c++
+##BuildRequires:	perl(ExtUtils::MakeMaker)
+##BuildRequires:	readline-devel zlib-devel >= 1.0.4 pgdg-srpm-macros
 
 # lz4 dependency
 %if 0%{?suse_version} >= 1315 && 0%{?suse_version} <= 1499
-BuildRequires:	liblz4-devel
+#BuildRequires:	liblz4-devel
 Requires:	liblz4-1
 %endif
 %if 0%{?rhel} || 0%{?fedora}
-BuildRequires:	lz4-devel
+#BuildRequires:	lz4-devel
 Requires:	lz4
 %endif
 
 # This dependency is needed for Source 16:
 %if 0%{?fedora} || 0%{?rhel} > 7
-BuildRequires:	perl-generators
+#BuildRequires:	perl-generators
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} == 7
@@ -142,7 +143,7 @@ BuildRequires:	perl-generators
 Requires:	/sbin/ldconfig
 
 %if %icu
-BuildRequires:	libicu-devel
+#BuildRequires:	libicu-devel
 Requires:	libicu
 %endif
 
@@ -150,81 +151,81 @@ Requires:	libicu
 %if 0%{?rhel} && 0%{?rhel} == 7
 # Packages come from EPEL and SCL:
 %ifarch aarch64
-BuildRequires:	llvm-toolset-7.0-llvm-devel >= 7.0.1 llvm-toolset-7.0-clang >= 7.0.1
+#BuildRequires:	llvm-toolset-7.0-llvm-devel >= 7.0.1 llvm-toolset-7.0-clang >= 7.0.1
 %else
-BuildRequires:	llvm5.0-devel >= 5.0 llvm-toolset-7-clang >= 4.0.1
+#BuildRequires:	llvm5.0-devel >= 5.0 llvm-toolset-7-clang >= 4.0.1
 %endif
 %endif
 %if 0%{?rhel} && 0%{?rhel} >= 8
 # Packages come from Appstream:
-BuildRequires:	llvm-devel >= 8.0.1 clang-devel >= 8.0.1
+#BuildRequires:	llvm-devel >= 8.0.1 clang-devel >= 8.0.1
 %endif
 %if 0%{?fedora}
-BuildRequires:	llvm-devel >= 5.0 clang-devel >= 5.0
+#BuildRequires:	llvm-devel >= 5.0 clang-devel >= 5.0
 %endif
 %if 0%{?suse_version} >= 1315 && 0%{?suse_version} <= 1499
-BuildRequires:	llvm6-devel clang6-devel
+#BuildRequires:	llvm6-devel clang6-devel
 %endif
 %if 0%{?suse_version} >= 1500
-BuildRequires:	llvm13-devel clang13-devel
+#BuildRequires:	llvm13-devel clang13-devel
 %endif
 %endif
 
 %if %kerberos
-BuildRequires:	krb5-devel
-BuildRequires:	e2fsprogs-devel
+#BuildRequires:	krb5-devel
+#BuildRequires:	e2fsprogs-devel
 %endif
 
 %if %ldap
 %if 0%{?suse_version}
 %if 0%{?suse_version} >= 1315
-BuildRequires:	openldap2-devel
+#BuildRequires:	openldap2-devel
 %endif
 %else
-BuildRequires:	openldap-devel
+#BuildRequires:	openldap-devel
 %endif
 %endif
 
 %if %nls
-BuildRequires:	gettext >= 0.10.35
+#BuildRequires:	gettext >= 0.10.35
 %endif
 
 %if %pam
-BuildRequires:	pam-devel
+#BuildRequires:	pam-devel
 %endif
 
 %if %plperl
 %if 0%{?rhel} && 0%{?rhel} >= 7
-BuildRequires:	perl-ExtUtils-Embed
+#BuildRequires:	perl-ExtUtils-Embed
 %endif
 %if 0%{?fedora} >= 22
-BuildRequires:	perl-ExtUtils-Embed
+#BuildRequires:	perl-ExtUtils-Embed
 %endif
 %endif
 
 %if %plpython3
-BuildRequires:	python3-devel
+#BuildRequires:	python3-devel
 %endif
 
 %if %pltcl
-BuildRequires:	tcl-devel
+#BuildRequires:	tcl-devel
 %endif
 
 %if %sdt
-BuildRequires:	systemtap-sdt-devel
+#BuildRequires:	systemtap-sdt-devel
 %endif
 
 %if %selinux
 # All supported distros have libselinux-devel package:
-BuildRequires:	libselinux-devel >= 2.0.93
+#BuildRequires:	libselinux-devel >= 2.0.93
 # SLES: SLES 15 does not have selinux-policy package. Use
 # it only on SLES 12:
 %if 0%{?suse_version} >= 1315 && 0%{?suse_version} <= 1499
-BuildRequires:	selinux-policy >= 3.9.13
+#BuildRequires:	selinux-policy >= 3.9.13
 %endif
 # RHEL/Fedora has selinux-policy:
 %if 0%{?rhel} || 0%{?fedora}
-BuildRequires:	selinux-policy >= 3.9.13
+#BuildRequires:	selinux-policy >= 3.9.13
 %endif
 %endif
 
@@ -233,9 +234,9 @@ BuildRequires:	selinux-policy >= 3.9.13
 # so use openssl-devel only on other platforms:
 %ifnarch ppc64 ppc64le
 %if 0%{?suse_version} >= 1315 && 0%{?suse_version} <= 1499
-BuildRequires:	libopenssl-devel
+#BuildRequires:	libopenssl-devel
 %else
-BuildRequires:	openssl-devel
+#BuildRequires:	openssl-devel
 %endif
 %endif
 %endif
@@ -243,19 +244,19 @@ BuildRequires:	openssl-devel
 %if %uuid
 %if 0%{?suse_version}
 %if 0%{?suse_version} >= 1315
-BuildRequires:	uuid-devel
+#BuildRequires:	uuid-devel
 %endif
 %else
-BuildRequires:	libuuid-devel
+#BuildRequires:	libuuid-devel
 %endif
 %endif
 
 %if %xml
-BuildRequires:	libxml2-devel libxslt-devel
+#BuildRequires:	libxml2-devel libxslt-devel
 %endif
 
 %if %{systemd_enabled}
-BuildRequires:		systemd, systemd-devel
+#BuildRequires:		systemd, systemd-devel
 # We require this to be present for %%{_prefix}/lib/tmpfiles.d
 Requires:		systemd
 %if 0%{?suse_version}
@@ -421,15 +422,15 @@ Requires:	libicu-devel
 %if %enabletaptests
 %if 0%{?suse_version} && 0%{?suse_version} >= 1315
 Requires:	perl-IPC-Run
-BuildRequires:	perl-IPC-Run
+#BuildRequires:	perl-IPC-Run
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 7
 Requires:	perl-Test-Simple
-BuildRequires:	perl-Test-Simple
+#BuildRequires:	perl-Test-Simple
 %endif
 %if 0%{?fedora}
 Requires:	perl-IPC-Run
-BuildRequires:	perl-IPC-Run
+#BuildRequires:	perl-IPC-Run
 %endif
 %endif
 
@@ -493,7 +494,7 @@ Summary:	The Perl procedural language for PostgreSQL
 Requires:	%{name}-server%{?_isa} = %{version}-%{release}
 Requires:	perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 %ifarch ppc ppc64
-BuildRequires:	perl-devel
+#BuildRequires:	perl-devel
 %endif
 Obsoletes:	postgresql%{pgmajorversion}-pl <= %{version}-%{release}
 Provides:	postgresql-plperl >= %{version}-%{release}
@@ -790,6 +791,16 @@ run_testsuite()
 %if %uuid
 %{__make} -C contrib/uuid-ossp DESTDIR=%{buildroot} install
 %endif
+
+%{__cp} -a %{pgdepdir}/lib/libcrypto.so* %{buildroot}/%{pgbaseinstdir}/lib
+%{__cp} -a %{pgdepdir}/lib/libicu*.so* %{buildroot}/%{pgbaseinstdir}/lib
+%{__cp} -a %{pgdepdir}/lib/liblber*.so* %{buildroot}/%{pgbaseinstdir}/lib
+%{__cp} -a %{pgdepdir}/lib/libldap*.so* %{buildroot}/%{pgbaseinstdir}/lib
+%{__cp} -a %{pgdepdir}/lib/liblz4*.so* %{buildroot}/%{pgbaseinstdir}/lib
+%{__cp} -a %{pgdepdir}/lib/liblzma*.so* %{buildroot}/%{pgbaseinstdir}/lib
+%{__cp} -a %{pgdepdir}/lib/libssl*.so* %{buildroot}/%{pgbaseinstdir}/lib
+%{__cp} -a %{pgdepdir}/lib/libxml2*.so* %{buildroot}/%{pgbaseinstdir}/lib
+%{__cp} -a %{pgdepdir}/lib/libz*.so* %{buildroot}/%{pgbaseinstdir}/lib
 
 # multilib header hack; note pg_config.h is installed in two places!
 # we only apply this to known Red Hat multilib arches, per bug #177564
@@ -1277,6 +1288,15 @@ fi
 %{pgbaseinstdir}/lib/libecpg_compat.so.*
 %{pgbaseinstdir}/lib/libpqwalreceiver.so
 %config(noreplace) %attr (644,root,root) %{pgbaseinstdir}/share/%{sname}-%{pgmajorversion}-libs.conf
+%{pgbaseinstdir}/lib/libcrypto.so*
+%{pgbaseinstdir}/lib/libicu*.so*
+%{pgbaseinstdir}/lib/liblber*.so*
+%{pgbaseinstdir}/lib/libldap*.so*
+%{pgbaseinstdir}/lib/liblz4*.so*
+%{pgbaseinstdir}/lib/liblzma*.so*
+%{pgbaseinstdir}/lib/libssl*.so*
+%{pgbaseinstdir}/lib/libxml2*.so*
+%{pgbaseinstdir}/lib/libz*.so*
 
 %files server -f pg_server.lst
 %defattr(-,root,root)
