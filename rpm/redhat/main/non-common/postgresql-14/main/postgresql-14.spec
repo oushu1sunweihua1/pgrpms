@@ -6,7 +6,9 @@
 %global prevmajorversion 13
 %global sname postgresql
 %global pgbaseinstdir	/usr/pgsql-%{pgmajorversion}
-%global pgdepdir /usr/pgsql-14
+%global pgdepdir ${DEPATH}
+
+%define debug_package %{nil}
 
 %global beta 0
 %{?beta:%global __os_install_post /usr/lib/rpm/brp-compress}
@@ -123,11 +125,11 @@ Patch10:	%{sname}-%{pgmajorversion}-14.5-Track-LLVM-15-changes.patch
 # lz4 dependency
 %if 0%{?suse_version} >= 1315 && 0%{?suse_version} <= 1499
 #BuildRequires:	liblz4-devel
-Requires:	liblz4-1
+#Requires:	liblz4-1
 %endif
 %if 0%{?rhel} || 0%{?fedora}
 #BuildRequires:	lz4-devel
-Requires:	lz4
+#Requires:	lz4
 %endif
 
 # This dependency is needed for Source 16:
@@ -144,7 +146,7 @@ Requires:	/sbin/ldconfig
 
 %if %icu
 #BuildRequires:	libicu-devel
-Requires:	libicu
+#Requires:	libicu
 %endif
 
 %if %llvm
@@ -296,15 +298,15 @@ Summary:	The shared libraries required for any PostgreSQL clients
 Provides:	postgresql-libs = %{pgmajorversion} libpq5 >= 10.0
 
 %if 0%{?rhel} && 0%{?rhel} <= 6
-Requires:	openssl
+#Requires:	openssl
 %else
 %if 0%{?suse_version} >= 1315 && 0%{?suse_version} <= 1499
-Requires:	libopenssl1_0_0
+#Requires:	libopenssl1_0_0
 %else
 %if 0%{?suse_version} >= 1500
-Requires:	libopenssl1_1
+#Requires:	libopenssl1_1
 %else
-Requires:	openssl-libs >= 1.0.2k
+#Requires:	openssl-libs >= 1.0.2k
 %endif
 %endif
 %endif
@@ -416,7 +418,7 @@ Requires:	llvm13-devel clang13-devel
 %endif
 %endif
 %if %icu
-Requires:	libicu-devel
+#Requires:	libicu-devel
 %endif
 
 %if %enabletaptests
@@ -800,7 +802,9 @@ run_testsuite()
 %{__cp} -a %{pgdepdir}/lib/liblzma*.so* %{buildroot}/%{pgbaseinstdir}/lib
 %{__cp} -a %{pgdepdir}/lib/libssl*.so* %{buildroot}/%{pgbaseinstdir}/lib
 %{__cp} -a %{pgdepdir}/lib/libxml2*.so* %{buildroot}/%{pgbaseinstdir}/lib
+%{__cp} -a %{pgdepdir}/lib/libxslt*.so* %{buildroot}/%{pgbaseinstdir}/lib
 %{__cp} -a %{pgdepdir}/lib/libz*.so* %{buildroot}/%{pgbaseinstdir}/lib
+%{__cp} -a %{pgdepdir}/lib/libreadline*.so* %{buildroot}/%{pgbaseinstdir}/lib
 
 # multilib header hack; note pg_config.h is installed in two places!
 # we only apply this to known Red Hat multilib arches, per bug #177564
@@ -971,8 +975,8 @@ useradd -M -g postgres -o -r -d /var/lib/pgsql -s /bin/bash \
 
 %post server
 /sbin/ldconfig
+%if %{systemd_enabled}
 if [ $1 -eq 1 ] ; then
- %if %{systemd_enabled}
    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
    %if 0%{?suse_version}
    %if 0%{?suse_version} >= 1315
@@ -981,8 +985,8 @@ if [ $1 -eq 1 ] ; then
    %else
    %systemd_post %{sname}-%{pgpackageversion}.service
    %endif
- %endif
 fi
+%endif
 
 # postgres' .bash_profile.
 # We now don't install .bash_profile as we used to in pre 9.0. Instead, use cat,
@@ -998,25 +1002,25 @@ chown postgres: /var/lib/pgsql/.bash_profile
 chmod 700 /var/lib/pgsql/.bash_profile
 
 %preun server
-if [ $1 -eq 0 ] ; then
 %if %{systemd_enabled}
+if [ $1 -eq 0 ] ; then
 	# Package removal, not upgrade
 	/bin/systemctl --no-reload disable %{sname}-%{pgmajorversion}.service >/dev/null 2>&1 || :
 	/bin/systemctl stop %{sname}-%{pgmajorversion}.service >/dev/null 2>&1 || :
-%endif
 fi
+%endif
 
 %postun server
 /sbin/ldconfig
 %if %{systemd_enabled}
  /bin/systemctl daemon-reload >/dev/null 2>&1 || :
 %endif
+%if %{systemd_enabled}
 if [ $1 -ge 1 ] ; then
- %if %{systemd_enabled}
 	# Package upgrade, not uninstall
 	/bin/systemctl try-restart %{sname}-%{pgmajorversion}.service >/dev/null 2>&1 || :
- %endif
 fi
+%endif
 
 # Create alternatives entries for common binaries and man files
 %post
@@ -1046,7 +1050,7 @@ fi
 %{_sbindir}/update-alternatives --install %{_mandir}/man1/vacuumdb.1 pgsql-vacuumdbman %{pgbaseinstdir}/share/man/man1/vacuumdb.1 %{packageversion}0
 
 %post libs
-%{_sbindir}/update-alternatives --install /etc/ld.so.conf.d/%{sname}-pgdg-libs.conf pgsql-ld-conf %{pgbaseinstdir}/share/%{sname}-%{pgmajorversion}-libs.conf %{packageversion}0
+#%{_sbindir}/update-alternatives --install /etc/ld.so.conf.d/%{sname}-pgdg-libs.conf pgsql-ld-conf %{pgbaseinstdir}/share/%{sname}-%{pgmajorversion}-libs.conf %{packageversion}0
 /sbin/ldconfig
 
 # Drop alternatives entries for common binaries and man files
@@ -1296,7 +1300,9 @@ fi
 %{pgbaseinstdir}/lib/liblzma*.so*
 %{pgbaseinstdir}/lib/libssl*.so*
 %{pgbaseinstdir}/lib/libxml2*.so*
+%{pgbaseinstdir}/lib/libxslt*.so*
 %{pgbaseinstdir}/lib/libz*.so*
+%{pgbaseinstdir}/lib/libreadline*.so*
 
 %files server -f pg_server.lst
 %defattr(-,root,root)
